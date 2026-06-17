@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Giỏ Hàng - PEST AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f6f9; }</style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm sticky-top py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-4" href="/"><i class="fa-solid fa-leaf me-2"></i>PEST AI</a>
+        <div class="d-flex align-items-center gap-4 ms-auto">
+            <a href="/cart" class="text-white text-decoration-none fw-bold border-bottom border-2"><i class="fa-solid fa-cart-shopping me-1"></i> Giỏ hàng</a>
+            <a href="/user/orders" class="text-white text-decoration-none fw-bold"><i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch sử</a>
+            <div class="dropdown">
+                <a class="text-white text-decoration-none d-flex align-items-center dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <img th:if="${currentUser.avatarUrl != null}" th:src="${currentUser.avatarUrl}" class="rounded-circle me-2 border border-2 border-white shadow-sm" style="width: 35px; height: 35px; object-fit: cover;">
+                    <img th:unless="${currentUser.avatarUrl != null}" src="https://via.placeholder.com/35?text=U" class="rounded-circle me-2 border border-2 border-white shadow-sm" style="width: 35px; height: 35px; object-fit: cover;">
+                    <span class="fw-bold" th:text="${currentUser.fullName}"></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3">
+                    <li th:if="${#strings.contains(currentUser.role, 'ADMIN')}"><a class="dropdown-item py-2 text-warning fw-bold" href="/admin/dashboard"><i class="fa-solid fa-shield-halved me-2"></i>Quản Trị Admin</a></li>
+                    <li><a class="dropdown-item py-2" href="/user/profile"><i class="fa-regular fa-id-card text-success me-2"></i>Thông tin cá nhân</a></li>
+                    <li><a class="dropdown-item py-2" href="/user/change-password"><i class="fa-solid fa-key text-warning me-2"></i>Đổi mật khẩu</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form id="logoutForm" th:action="@{/logout}" method="post" class="m-0">
+                            <button type="button" class="dropdown-item py-2 text-danger fw-bold btn-logout"><i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5 mb-5">
+    <h3 class="fw-bold text-dark mb-4"><i class="fa-solid fa-cart-arrow-down text-success me-2"></i>Giỏ hàng của bạn</h3>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden bg-white">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light"><tr><th>Sản Phẩm</th><th>Đơn Giá</th><th class="text-center">Số Lượng</th><th>Thành Tiền</th><th>Xóa</th></tr></thead>
+                    <tbody>
+                    <tr th:each="item : ${cartItems}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img th:if="${item.product.imageUrl != null}" th:src="${item.product.imageUrl}" class="rounded me-3 border" style="width: 60px; height: 60px; object-fit: cover;">
+                                <img th:unless="${item.product.imageUrl != null}" src="https://via.placeholder.com/60" class="rounded me-3 border">
+                                <span class="fw-bold text-dark" th:text="${item.product.name}"></span>
+                            </div>
+                        </td>
+                        <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(item.product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <form th:action="@{/cart/update}" method="post" class="m-0">
+                                    <input type="hidden" name="itemId" th:value="${item.id}">
+                                    <input type="hidden" name="action" value="decrease">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary rounded-circle fw-bold px-2 py-0">-</button>
+                                </form>
+                                <span class="fw-bold fs-6 px-2" th:text="${item.quantity}">1</span>
+                                <form th:action="@{/cart/update}" method="post" class="m-0">
+                                    <input type="hidden" name="itemId" th:value="${item.id}">
+                                    <input type="hidden" name="action" value="increase">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary rounded-circle fw-bold px-2 py-0">+</button>
+                                </form>
+                            </div>
+                        </td>
+
+                        <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                        <td>
+                            <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post" class="m-0">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle"><i class="fa-solid fa-xmark"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${cartItems.isEmpty()}"><td colspan="5" class="text-center py-5 text-muted"><i class="fa-solid fa-basket-shopping fs-1 mb-3 text-light"></i><br>Giỏ hàng đang trống. Hãy quay lại mua sắm!</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-md-4" th:unless="${cartItems.isEmpty()}">
+            <div class="card shadow-lg border-0 rounded-4 p-4 bg-white border-top border-5 border-success">
+                <h5 class="fw-bold mb-4 border-bottom pb-3"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Thanh Toán</h5>
+                <div class="d-flex justify-content-between mb-4"><span class="text-muted fw-bold">Tổng thanh toán:</span><h4 class="text-danger fw-bold m-0" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></h4></div>
+
+                <form id="checkoutForm" th:action="@{/checkout}" method="post">
+
+                    <div class="mb-3">
+                        <label class="fw-bold text-dark small mb-2"><i class="fa-solid fa-location-dot text-danger me-1"></i> Địa chỉ giao hàng:</label>
+                        <textarea name="address" class="form-control bg-light border-0 py-2 shadow-none fw-semibold" rows="3" placeholder="Nhập địa chỉ nhận hàng chi tiết..." required>[[${currentUser.defaultAddress}]]</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="fw-bold text-dark small mb-2"><i class="fa-solid fa-credit-card text-primary me-1"></i> Phương thức thanh toán:</label>
+                        <select name="paymentMethod" class="form-select bg-light border-0 py-2 shadow-none fw-bold text-dark">
+                            <option value="Thanh toán khi nhận hàng (COD)">Thanh toán khi nhận hàng (COD)</option>
+                            <option value="Chuyển khoản ngân hàng (Naples)">Chuyển khoản ngân hàng (Qua mã QR)</option>
+                            <option value="Ví điện tử MoMo">Cổng thanh toán Ví MoMo</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-bold py-3 rounded-pill shadow text-uppercase fs-6"><i class="fa-solid fa-truck-ramp-box me-2"></i>Xác Nhận Đặt Hàng</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // XỬ LÝ CHẶN FORM ĐỂ HIỂN THỊ SWEETALERT THÀNH CÔNG RỒI MỚI CHUYỂN TRANG
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Dừng việc chuyển trang ngay lập tức
+
+            const form = this;
+            const formData = new FormData(form);
+
+            // Hiện loading giả lập hệ thống xử lý kho
+            Swal.fire({
+                title: 'Đang xử lý đơn hàng...',
+                text: 'Vui lòng chờ trong giây lát.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            // Gửi dữ liệu bằng AJAX Fetch lên Controller
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.redirected) {
+                    // BẮT SỰ KIỆN ĐẶT HÀNG THÀNH CÔNG -> HIỆN POPUP TỰ THIẾT KẾ
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đặt hàng thành công 🎉',
+                        text: 'Đơn hàng của bạn đã được ghi nhận vào hệ thống.',
+                        confirmButtonColor: '#2ecc71',
+                        confirmButtonText: 'Xem lịch sử đơn hàng',
+                        timer: 3000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        // CHUYỂN HƯỚNG SANG TRANG LỊCH SỬ ĐƠN HÀNG SAU KHI USER ĐÃ XEM THÔNG BÁO
+                        window.location.href = response.url;
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Thất bại', text: 'Có lỗi xảy ra khi xử lý đơn hàng.' });
+                }
+            }).catch(() => {
+                Swal.fire({ icon: 'error', title: 'Lỗi kết nối', text: 'Vui lòng thử lại sau.' });
+            });
+        });
+    }
+
+    // Custom Alert Đăng xuất
+    document.querySelectorAll('.btn-logout').forEach(button => {
+        button.addEventListener('click', function() {
+            Swal.fire({ title: 'Đăng xuất?', text: "Bạn có chắc chắn muốn thoát khỏi hệ thống?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c', cancelButtonColor: '#95a5a6', confirmButtonText: 'Đăng xuất ngay', cancelButtonText: 'Hủy bỏ' })
+            .then((result) => { if (result.isConfirmed) { document.getElementById('logoutForm').submit(); } });
+        });
+    });
+</script>
+</body>
+</html>

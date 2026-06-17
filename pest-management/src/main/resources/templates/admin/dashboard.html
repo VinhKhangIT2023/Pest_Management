@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bảng Điều Khiển - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f6f9; }</style>
+</head>
+<body>
+<div class="d-flex">
+    <div class="bg-dark text-white p-3 position-fixed shadow-lg d-flex flex-column" style="width: 250px; height: 100vh; z-index: 1000;">
+        <h4 class="fw-bold mb-4 mt-2 text-center text-success"><i class="fa-solid fa-shield-halved"></i> PANEL</h4>
+        <p class="text-center text-warning small mb-4 fw-bold border-bottom border-secondary pb-3">👑 ROOT ADMIN</p>
+        <div class="list-group list-group-flush border-0 gap-1 flex-grow-1">
+            <a href="/admin/dashboard" class="list-group-item list-group-item-action bg-success text-white border-0 rounded fw-bold shadow-sm active"><i class="fa-solid fa-chart-pie me-2"></i>Thống kê</a>
+            <a href="/admin/products" class="list-group-item list-group-item-action bg-dark text-white border-0 rounded"><i class="fa-solid fa-box-open me-2"></i>Sản phẩm</a>
+            <a href="/admin/users" class="list-group-item list-group-item-action bg-dark text-white border-0 rounded"><i class="fa-solid fa-users me-2"></i>Người dùng</a>
+            <a href="/admin/admins" class="list-group-item list-group-item-action bg-dark text-white border-0 rounded"><i class="fa-solid fa-user-shield me-2"></i>Quản lý Admin</a>
+        </div>
+        <form th:action="@{/logout}" method="post" class="mt-auto">
+            <button type="submit" class="btn btn-danger w-100 fw-bold shadow-sm"><i class="fa-solid fa-right-from-bracket me-2"></i>Đăng Xuất</button>
+        </form>
+    </div>
+
+    <div class="flex-grow-1 p-5" style="margin-left: 250px;">
+        <h2 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-chart-line text-success me-2"></i>Báo Cáo Tổng Quan</h2>
+        <div class="row g-4 mb-5">
+            <div class="col-md-4"><div class="card bg-white text-dark shadow-sm border-0 rounded-4 p-4 border-start border-5 border-success"><h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-sack-dollar text-success me-2"></i>Tổng Doanh Thu</h5><h2 class="fw-bold text-success mb-0" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0đ</h2></div></div>
+            <div class="col-md-4"><div class="card bg-white text-dark shadow-sm border-0 rounded-4 p-4 border-start border-5 border-primary"><h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-cart-flatbed text-primary me-2"></i>Đơn Hàng Thành Công</h5><h2 class="fw-bold text-primary mb-0" th:text="${totalOrders}">0</h2></div></div>
+            <div class="col-md-4"><div class="card bg-white text-dark shadow-sm border-0 rounded-4 p-4 border-start border-5 border-warning"><h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-users text-warning me-2"></i>Khách Hàng</h5><h2 class="fw-bold text-warning mb-0" th:text="${totalUsers}">0</h2></div></div>
+        </div>
+        <div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
+            <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-chart-bar text-secondary me-2"></i>Biểu Đồ Tăng Trưởng (Minh Họa)</h5>
+            <canvas id="revenueChart" height="100"></canvas>
+        </div>
+    </div>
+</div>
+<script>
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+            datasets: [{ label: 'Doanh thu (VNĐ)', data: [1200000, 1900000, 3000000, 2500000, 4200000, 3800000], backgroundColor: '#2ecc71', borderRadius: 5, barPercentage: 0.6 }]
+        },
+        options: { plugins: { legend: { labels: { font: { family: "'Segoe UI', sans-serif", weight: 'bold' } } } }, scales: { y: { beginAtZero: true } } }
+    });
+</script>
+</body>
+</html>

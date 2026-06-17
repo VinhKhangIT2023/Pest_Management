@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sản Phẩm - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Nạp SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f6f9; } .hover-bg-light:hover { background-color: #f8f9fa; }</style>
+</head>
+<body>
+<div class="d-flex">
+    <!-- Sidebar Root Admin -->
+    <div class="bg-dark text-white p-3 position-fixed shadow-lg d-flex flex-column" style="width: 250px; height: 100vh; z-index: 1000;">
+        <h4 class="fw-bold mb-4 mt-2 text-center text-success"><i class="fa-solid fa-shield-halved"></i> PANEL</h4>
+        <p class="text-center text-warning small mb-4 fw-bold border-bottom border-secondary pb-3">👑 ROOT ADMIN</p>
+        <div class="list-group list-group-flush border-0 gap-1 flex-grow-1">
+            <a href="/admin/dashboard" class="list-group-item list-group-item-action bg-dark text-white border-0 rounded"><i class="fa-solid fa-chart-pie me-2"></i>Thống kê</a>
+            <a href="/admin/products" class="list-group-item list-group-item-action bg-success text-white border-0 rounded fw-bold shadow-sm active"><i class="fa-solid fa-box-open me-2"></i>Sản phẩm</a>
+            <a href="/admin/users" class="list-group-item list-group-item-action bg-dark text-white border-0 rounded"><i class="fa-solid fa-users me-2"></i>Người dùng</a>
+            <a href="/admin/admins" class="list-group-item list-group-item-action bg-dark text-white border-0 rounded"><i class="fa-solid fa-user-shield me-2"></i>Quản lý Admin</a>
+        </div>
+        <form th:action="@{/logout}" method="post" class="mt-auto">
+            <button type="submit" class="btn btn-danger w-100 fw-bold shadow-sm"><i class="fa-solid fa-right-from-bracket me-2"></i>Đăng Xuất</button>
+        </form>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow-1 p-5" style="margin-left: 250px;">
+        <h2 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-box-open text-success me-2"></i>Quản Lý Thuốc Đặc Trị</h2>
+
+        <!-- Form Thêm Mới -->
+        <div class="card shadow-sm mb-5 p-4 border-0 rounded-4 bg-white border-top border-4 border-success">
+            <h5 class="fw-bold text-success mb-4"><i class="fa-solid fa-circle-plus me-2"></i>Thêm Mới Sản Phẩm</h5>
+            <form th:action="@{/admin/products/save}" method="post" enctype="multipart/form-data" th:object="${newProduct}">
+                <div class="row mb-4">
+                    <div class="col-md-4"><label class="fw-bold text-secondary small mb-1">Tên thuốc:</label><input type="text" class="form-control bg-light border-0 px-3 py-2 rounded-3 shadow-none" name="name" required></div>
+                    <div class="col-md-3"><label class="fw-bold text-secondary small mb-1">Giá (VNĐ):</label><input type="number" class="form-control bg-light border-0 px-3 py-2 rounded-3 shadow-none" name="price" required></div>
+                    <div class="col-md-5"><label class="fw-bold text-secondary small mb-1">Đặc trị bệnh:</label><select class="form-select bg-light border-0 px-3 py-2 rounded-3 fw-bold text-dark shadow-none" name="insect.id"><option th:each="i : ${insects}" th:value="${i.id}" th:text="${i.displayName}"></option></select></div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-8"><label class="fw-bold text-secondary small mb-1">Mô tả chi tiết:</label><textarea class="form-control bg-light border-0 px-3 py-2 rounded-3 shadow-none" name="description" rows="2"></textarea></div>
+                    <div class="col-md-4"><label class="fw-bold text-secondary small mb-1">Tải ảnh (Từ máy):</label><input type="file" class="form-control bg-light border-0 px-3 py-2 rounded-3 shadow-none" name="imageFile" accept="image/*"></div>
+                </div>
+                <button type="submit" class="btn btn-success fw-bold px-5 py-2 rounded-pill shadow-sm">Lưu Dữ Liệu</button>
+            </form>
+        </div>
+
+        <!-- Table & Search Suggestions -->
+        <div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-list-check me-2"></i>Kho Sản Phẩm</h5>
+                <!-- Form Tìm kiếm có Auto-suggest -->
+                <div class="w-50 position-relative">
+                    <form th:action="@{/admin/products}" method="get" class="d-flex">
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                            <input id="adminSearchInput" type="text" name="keyword" th:value="${keyword}" class="form-control border-0 px-4 bg-light shadow-none" placeholder="🔍 Tìm kiếm nhanh thuốc theo tên..." autocomplete="off">
+                            <button class="btn btn-dark fw-bold px-4">Tìm</button>
+                        </div>
+                    </form>
+                    <div id="adminSuggestions" class="position-absolute w-100 bg-white shadow-lg rounded-4 mt-2 d-none overflow-hidden border" style="z-index: 1050; max-height: 300px; overflow-y: auto;"></div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 border rounded overflow-hidden">
+                    <thead class="table-dark"><tr><th>Ảnh</th><th>Tên Thuốc</th><th>Đặc Trị</th><th>Giá Bán</th><th class="text-center">Thao Tác</th></tr></thead>
+                    <tbody class="bg-white">
+                    <tr th:each="p : ${products}">
+                        <td>
+                            <img th:if="${p.imageUrl != null}" th:src="${p.imageUrl}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 10px; border: 2px solid #eee;">
+                            <span th:unless="${p.imageUrl != null}" class="badge bg-warning text-dark px-2 py-1">Chưa có ảnh</span>
+                        </td>
+                        <td class="fw-bold text-dark fs-6" th:text="${p.name}"></td>
+                        <td><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill" th:text="${p.insect != null ? p.insect.displayName : 'Chưa gắn'}"></span></td>
+                        <td class="text-danger fw-bold fs-6" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                        <td class="text-center">
+                            <!-- Nút Sửa -->
+                            <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn btn-light text-primary rounded-circle p-2 shadow-sm border me-1" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></a>
+
+                            <!-- Form Xóa (Dùng SweetAlert2) -->
+                            <form th:action="@{/admin/products/delete/{id}(id=${p.id})}" method="post" class="d-inline">
+                                <button type="button" class="btn btn-light text-danger rounded-circle p-2 shadow-sm border btn-delete" title="Xóa dữ liệu"><i class="fa-solid fa-trash-can"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Xử lý Tìm kiếm Auto-suggest
+    document.addEventListener("DOMContentLoaded", function() {
+        const input = document.getElementById('adminSearchInput'), box = document.getElementById('adminSuggestions');
+        let timeout = null;
+        input.addEventListener('input', function() {
+            clearTimeout(timeout);
+            const keyword = this.value.trim();
+            if (keyword.length < 1) { box.classList.add('d-none'); return; }
+            timeout = setTimeout(() => {
+                fetch('/api/search?keyword=' + encodeURIComponent(keyword)).then(res => res.json()).then(data => {
+                    if (data.length === 0) { box.classList.add('d-none'); return; }
+                    box.innerHTML = '';
+                    data.forEach(p => {
+                        box.innerHTML += `<div class="d-flex align-items-center p-3 text-dark border-bottom hover-bg-light" style="cursor:pointer;" onclick="window.location.href='/admin/products?keyword=${encodeURIComponent(p.name)}'"><img src="${p.imageUrl || 'https://via.placeholder.com/40'}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 5px;" class="me-3"><div><h6 class="fw-bold mb-0 text-success">${p.name}</h6><span class="text-danger fw-bold small">${p.price.toLocaleString('vi-VN')} đ</span></div></div>`;
+                    });
+                    box.classList.remove('d-none');
+                });
+            }, 300);
+        });
+        document.addEventListener('click', e => { if (!input.contains(e.target) && !box.contains(e.target)) box.classList.add('d-none'); });
+    });
+
+    // Xử lý Custom Alert Xóa
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('form');
+            Swal.fire({
+                title: 'Bạn chắc chắn muốn xóa?',
+                text: "Dữ liệu sản phẩm này sẽ bị xóa vĩnh viễn!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Đồng ý xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
