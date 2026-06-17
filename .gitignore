@@ -1,0 +1,71 @@
+# ==========================================
+# 1. THƯ MỤC CHỨA DỮ LIỆU SINH RA KHI CHẠY (QUAN TRỌNG)
+# ==========================================
+# Tuyệt đối không đẩy ảnh người dùng tải lên (avatar, ảnh sản phẩm test) lên GitHub
+pest-management/uploads/
+
+# Bỏ qua file ảnh tạm thời mà Flask tạo ra lúc nhận diện AI
+API_Server/temp_prediction_image.jpg
+
+
+# ==========================================
+# 2. CÁC FILE CỦA JAVA & SPRING BOOT (BACKEND)
+# ==========================================
+# Bỏ qua thư mục build (chứa code đã biên dịch nặng nề)
+pest-management/target/
+*.class
+*.jar
+*.war
+
+# Bỏ qua các file log ghi lỗi của server
+*.log
+
+
+# ==========================================
+# 3. CÁC FILE CỦA PYTHON & FLASK (AI SERVER)
+# ==========================================
+# Bỏ qua file cache của Python sinh ra
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Bỏ qua môi trường ảo (virtual environment) nếu bạn có tạo
+venv/
+env/
+.env
+
+
+# ==========================================
+# 4. CÁC FILE CẤU HÌNH CỦA PHẦN MỀM GÕ CODE (IDE)
+# ==========================================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Visual Studio Code
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+
+# ==========================================
+# 5. CÁC FILE RÁC CỦA HỆ ĐIỀU HÀNH
+# ==========================================
+# macOS
+.DS_Store
+
+# ==========================================
+# 6. BẢO MẬT THÔNG TIN NHẠY CẢM (CREDENTIALS)
+# ==========================================
+# Bỏ qua file cấu hình chứa mật khẩu Database
+pest-management/src/main/resources/application.properties
+
+# Nếu bạn có dùng file .env thì cũng chặn luôn
+*.env
+
+# Windows
+Thumbs.db
